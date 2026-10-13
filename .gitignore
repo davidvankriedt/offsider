@@ -1,1 +1,12 @@
 .env
+.env.*
+
+.venv/
+
+data/
+models/
+runs/
+*.pt
+
+*.cache
+.DS_Store

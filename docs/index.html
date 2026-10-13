@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offsider - automated parking validation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F4F3EE;
+      --card: #FFFFFF;
+      --card-muted: #EAE8DF;
+      --ink: #161616;
+      --ink-secondary: #706F6A;
+      --ink-tertiary: #A6A59E;
+      --orange: #FF4400;
+      --orange-soft: #FFF0EB;
+      --green: #1E8E3E;
+      --green-soft: #EBF7EE;
+      --red: #D93025;
+      --red-soft: #FDECEA;
+      --border-subtle: rgba(0, 0, 0, 0.05);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
+      letter-spacing: -0.015em;
+    }
+
+    /* Minimal Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background-color: rgba(244, 243, 238, 0.85);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-dot {
+      width: 9px;
+      height: 9px;
+      background: var(--orange);
+      border-radius: 50%;
+    }
+
+    .nav-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-secondary);
+      background: var(--card-muted);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 400;
+    }
+
+    /* Main Container */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 24px 120px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto 150px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--orange-soft);
+      color: var(--orange);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(42px, 6vw, 68px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(17px, 2.2vw, 21px);
+      color: var(--ink-secondary);
+      line-height: 1.45;
+      font-weight: 400;
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    /* Pill Buttons */
+    .btn {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 14px 26px;
+      border-radius: 40px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background: #E63D00;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--ink);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .btn-secondary:hover {
+      background: #FAF9F5;
+      transform: translateY(-1px);
+    }
+
+    /* Interactive Showcase Card */
+    .showcase {
+      background: var(--card);
+      border-radius: 36px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+      margin-bottom: 110px;
+    }
+
+    @media (max-width: 900px) {
+      .showcase {
+        grid-template-columns: 1fr;
+        padding: 28px;
+        gap: 36px;
+      }
+    }
+
+    /* Visual Simulation Display */
+    .viewport {
+      background: var(--bg);
+      border-radius: 28px;
+      height: 380px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Minimal Sign Representation */
+    .sign-plate {
+      background: #FFFFFF;
+      border-radius: 18px;
+      width: 170px;
+      padding: 24px 18px;
+      text-align: center;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+      transition: all 0.3s ease;
+    }
+
+    .sign-tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 4px 8px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 12px;
+      color: #fff;
+    }
+
+    .sign-tag.red { background: var(--red); }
+    .sign-tag.green { background: var(--green); }
+
+    .sign-title {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .sign-sub {
+      font-size: 11px;
+      color: var(--ink-secondary);
+      font-family: var(--font-mono);
+    }
+
+    /* Rounded Detection Overlay */
+    .detection-ring {
+      position: absolute;
+      border: 2px solid var(--orange);
+      border-radius: 22px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      background: rgba(255, 68, 0, 0.04);
+    }
+
+    .detection-badge {
+      position: absolute;
+      top: -12px;
+      left: 14px;
+      background: var(--orange);
+      color: #FFFFFF;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    /* Controls & Live Card */
+    .showcase-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .selector-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      background: var(--bg);
+      border: none;
+      color: var(--ink-secondary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .pill-btn:hover {
+      color: var(--ink);
+    }
+
+    .pill-btn.active {
+      background: var(--ink);
+      color: #FFFFFF;
+    }
+
+    /* Dynamic Output Panel */
+    .result-sheet {
+      background: var(--bg);
+      border-radius: 24px;
+      padding: 24px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .status-badge.allowed {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .status-badge.denied {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .telemetry-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .telemetry-key {
+      color: var(--ink-secondary);
+    }
+
+    .telemetry-val {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* Minimal Trio Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 100px;
+    }
+
+    @media (max-width: 800px) {
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .feature-card {
+      background: var(--card);
+      border-radius: 30px;
+      padding: 36px 32px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+    }
+
+    .feature-index {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--orange);
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .feature-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .feature-body {
+      font-size: 14px;
+      color: var(--ink-secondary);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--ink-tertiary);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Minimal Header -->
+  <header>
+    <div class="nav-container">
+      <div class="brand">
+        <span>offsider</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Park with certainty.</h1>
+      <p class="hero-subtitle">
+        Offsider decodes complex kerbside parking signs and checks them against your vehicle type in real time—eliminating fines and guesswork.
+      </p>
+      <div class="hero-actions">
+        <a href="https://github.com/davidvankriedt/offsider" target="_blank" class="btn btn-secondary">View on GitHub</a>
+      </div>
+    </section>
+
+    <h2 style="text-align: center; margin-bottom: 30px; margin-top: 50px;">Demo</h2>
+
+    <!-- Interactive Simulator Showcase -->
+    <section id="demo" class="showcase">
+      <!-- Left: Interactive Canvas -->
+      <div class="viewport">
+        <div class="sign-plate" id="signPlate">
+          <span class="sign-tag red" id="signTag">LOADING ZONE</span>
+          <div class="sign-title" id="signTitle">7AM – MIDNIGHT</div>
+          <div class="sign-sub" id="signSub">MON – SAT</div>
+        </div>
+
+        <div class="detection-ring" id="detectionRing" style="width: 190px; height: 180px;">
+          <span class="detection-badge">panel 0.98</span>
+        </div>
+      </div>
+
+      <!-- Right: Pure Apple-style Controls -->
+      <div class="showcase-content">
+        <div>
+          <div class="section-label" style="margin-bottom: 10px;">Select Scenario</div>
+          <div class="selector-pills" id="scenarioPills">
+            <button class="pill-btn active" data-type="lz">Loading Zone</button>
+            <button class="pill-btn" data-type="p10">10-Minute Parking</button>
+            <button class="pill-btn" data-type="clearway">Clearway</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-label" style="margin-bottom: 10px;">Vehicle Classification</div>
+          <div class="selector-pills" id="vehiclePills">
+            <button class="pill-btn active" data-vehicle="truck">Commercial Truck</button>
+            <button class="pill-btn" data-vehicle="car">Passenger Car</button>
+          </div>
+        </div>
+
+        <!-- Telemetry Card -->
+        <div class="result-sheet">
+          <div class="status-badge allowed" id="statusBadge">
+            <span class="status-dot"></span>
+            <span id="statusText">Allowed for Loading</span>
+          </div>
+
+          <div class="telemetry-row">
+            <span class="telemetry-key">OCR Transcription</span>
+            <span class="telemetry-val" id="valOcr">LOADING ZONE</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">Active Hours</span>
+            <span class="telemetry-val" id="valHours">07:00 – 00:00</span>
+          </div>
+          <div class="telemetry-row">
+            <span class="telemetry-key">Model Confidence</span>
+            <span class="telemetry-val" id="valConf">98.4%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <h2 style="margin-bottom: 30px; margin-top: 50px;">How It Works</h2>
+
+    <!-- 3 Clean Feature Panels -->
+    <section class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-index">01</div>
+        <h3 class="feature-title">Panel Localization</h3>
+        <p class="feature-body">
+          A fine-tuned YOLO model tightly frames physical sign plates, isolating relevant regulatory graphics from background visual clutter.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-index">02</div>
+        <h3 class="feature-title">OCR Parsing</h3>
+        <p class="feature-body">
+          Crops pass directly to an optical character recognition engine that extracts hours, time limits, and vehicle exemptions.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-index">03</div>
+        <h3 class="feature-title">Rule Evaluation</h3>
+        <p class="feature-body">
+          Evaluates parsed regulations against the current timestamp and vehicle type to output immediate clearance guidance.
+        </p>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div>Made in Sydney, Australia</div>
+    </footer>
+  </main>
+
+  <script>
+    const data = {
+      lz: {
+        tag: 'LOADING ZONE',
+        tagClass: 'red',
+        title: '7AM – MIDNIGHT',
+        sub: 'MON – SAT',
+        ocr: 'LOADING ZONE',
+        hours: '07:00 – 00:00',
+        conf: '98.4%',
+        rules: {
+          truck: { allowed: true, text: 'Authorized (Goods Loading)' },
+          car: { allowed: false, text: 'Restricted (Commercial Only)' }
+        }
+      },
+      p10: {
+        tag: '10 MIN',
+        tagClass: 'green',
+        title: '6PM – MIDNIGHT',
+        sub: 'MON – SAT',
+        ocr: 'P 10 MINUTES',
+        hours: '18:00 – 00:00',
+        conf: '96.2%',
+        rules: {
+          truck: { allowed: true, text: 'Allowed (10 Min Max)' },
+          car: { allowed: true, text: 'Allowed (10 Min Max)' }
+        }
+      },
+      clearway: {
+        tag: 'CLEARWAY',
+        tagClass: 'red',
+        title: '6AM – 10AM',
+        sub: 'MON – FRI',
+        ocr: 'CLEARWAY',
+        hours: '06:00 – 10:00',
+        conf: '99.1%',
+        rules: {
+          truck: { allowed: false, text: 'Tow-Away Active' },
+          car: { allowed: false, text: 'Tow-Away Active' }
+        }
+      }
+    };
+
+    let activeScenario = 'lz';
+    let activeVehicle = 'truck';
+
+    const signTag = document.getElementById('signTag');
+    const signTitle = document.getElementById('signTitle');
+    const signSub = document.getElementById('signSub');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    const valOcr = document.getElementById('valOcr');
+    const valHours = document.getElementById('valHours');
+    const valConf = document.getElementById('valConf');
+
+    function update() {
+      const item = data[activeScenario];
+      const verdict = item.rules[activeVehicle];
+
+      signTag.textContent = item.tag;
+      signTag.className = `sign-tag ${item.tagClass}`;
+      signTitle.textContent = item.title;
+      signSub.textContent = item.sub;
+
+      valOcr.textContent = item.ocr;
+      valHours.textContent = item.hours;
+      valConf.textContent = item.conf;
+
+      statusText.textContent = verdict.text;
+      if (verdict.allowed) {
+        statusBadge.className = 'status-badge allowed';
+      } else {
+        statusBadge.className = 'status-badge denied';
+      }
+    }
+
+    document.querySelectorAll('#scenarioPills .pill-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('#scenarioPills .pill-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        activeScenario = e.target.dataset.type;
+        update();
+      });
+    });
+
+    document.querySelectorAll('#vehiclePills .pill-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('#vehiclePills .pill-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        activeVehicle = e.target.dataset.vehicle;
+        update();
+      });
+    });
+
+    update();
+  </script>
+</body>
+</html>
